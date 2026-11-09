@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
@@ -172,6 +173,18 @@ class IOSInputMethodService : InputMethodService(), KeyboardActionListener {
     override fun onConfigureWindow(win: Window, isFullscreen: Boolean, isCandidatesOnly: Boolean) {
         super.onConfigureWindow(win, isFullscreen, isCandidatesOnly)
         configureWindowTranslucency(win)
+
+        // Keep the non-fullscreen IME attached to the bottom edge. Some OEM
+        // window/insets implementations can leave the IME window with a stale
+        // or expanded layout after navigation-mode changes. Do not override
+        // fullscreen/candidates-only layouts managed by InputMethodService.
+        if (!isFullscreen && !isCandidatesOnly) {
+            win.attributes = win.attributes.apply {
+                gravity = Gravity.BOTTOM
+                width = WindowManager.LayoutParams.MATCH_PARENT
+                height = WindowManager.LayoutParams.WRAP_CONTENT
+            }
+        }
     }
 
     private fun configureWindowTranslucency(win: Window?) {
